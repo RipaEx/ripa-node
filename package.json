@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "doc": "docco -t docs/template/ripaexio.jst -c docs/template/ripaexio.css modules/* app.js README.md",
+    "doc": "docco -t docs/template/arkio.jst -c docs/template/arkio.css modules/* app.js README.md",
     "start:testnet": "node app.js --genesis genesisBlock.testnet.json --config config.testnet.json",
     "start:devnet": "node app.js --genesis genesisBlock.devnet.json --config config.devnet.json",
     "start:mainnet": "node app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json",
@@ -14,7 +14,6 @@
   },
   "author": "Giovanni Silvestri <gsit80@gmail.com>, Boris Povod <boris@crypti.me>, Pavel Nekrasov <landgraf.paul@gmail.com>, Oliver Beddows <oliver@lisk.io>, FX Thoorens <fx.thoorens@ark.io>",
   "dependencies": {
-    "ripajs": "github:RipaEx/ripa-js#master",
     "async": "=2.0.1",
     "bip39": "^2.2.0",
     "body-parser": "=1.15.2",
@@ -24,6 +23,7 @@
     "commander": "=2.9.0",
     "compression": "=1.6.2",
     "cors": "=2.8.1",
+    "docco": "^0.8.0",
     "ejs": "=2.5.2",
     "express": "=4.14.0",
     "express-domain-middleware": "=0.1.0",
@@ -43,6 +43,7 @@
     "pug": "^2.0.0-beta11",
     "randomstring": "=1.1.5",
     "rimraf": "=2.5.4",
+    "ripajs": "github:RipaEx/ripa-js#master",
     "secp256k1": "^3.5.0",
     "socket.io": "=1.4.8",
     "strftime": "=0.9.2",

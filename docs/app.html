@@ -36,76 +36,6 @@
                   app.js
                 </a>
               
-                
-                <a class="source" href="accounts.html">
-                  accounts.js
-                </a>
-              
-                
-                <a class="source" href="blockchain.html">
-                  blockchain.js
-                </a>
-              
-                
-                <a class="source" href="blocks.html">
-                  blocks.js
-                </a>
-              
-                
-                <a class="source" href="delegates.html">
-                  delegates.js
-                </a>
-              
-                
-                <a class="source" href="loader.html">
-                  loader.js
-                </a>
-              
-                
-                <a class="source" href="multisignatures.html">
-                  multisignatures.js
-                </a>
-              
-                
-                <a class="source" href="nodeManager.html">
-                  nodeManager.js
-                </a>
-              
-                
-                <a class="source" href="peers.html">
-                  peers.js
-                </a>
-              
-                
-                <a class="source" href="rounds.html">
-                  rounds.js
-                </a>
-              
-                
-                <a class="source" href="signatures.html">
-                  signatures.js
-                </a>
-              
-                
-                <a class="source" href="system.html">
-                  system.js
-                </a>
-              
-                
-                <a class="source" href="transactionPool.html">
-                  transactionPool.js
-                </a>
-              
-                
-                <a class="source" href="transactions.html">
-                  transactions.js
-                </a>
-              
-                
-                <a class="source" href="transport.html">
-                  transport.js
-                </a>
-              
             </div>
           </div>
         </li>
@@ -125,123 +55,132 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-meta">'use strict'</span>;
+            <div class="content"><div class='highlight'><pre>'use strict';
 
-<span class="hljs-keyword">var</span> appConfig = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./config.json'</span>);
-<span class="hljs-keyword">var</span> <span class="hljs-keyword">async</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
-<span class="hljs-keyword">var</span> checkIpInList = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./helpers/checkIpInList.js'</span>);
-<span class="hljs-keyword">var</span> extend = <span class="hljs-built_in">require</span>(<span class="hljs-string">'extend'</span>);
-<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
-<span class="hljs-keyword">var</span> genesisblock = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./genesisBlock.json'</span>);
-<span class="hljs-keyword">var</span> https = <span class="hljs-built_in">require</span>(<span class="hljs-string">'https'</span>);
-<span class="hljs-keyword">var</span> Logger = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./logger.js'</span>);
-<span class="hljs-keyword">var</span> packageJson = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./package.json'</span>);
-<span class="hljs-keyword">var</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
-<span class="hljs-keyword">var</span> program = <span class="hljs-built_in">require</span>(<span class="hljs-string">'commander'</span>);
-<span class="hljs-keyword">var</span> Sequence = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./helpers/sequence.js'</span>);
-<span class="hljs-keyword">var</span> util = <span class="hljs-built_in">require</span>(<span class="hljs-string">'util'</span>);
-<span class="hljs-keyword">var</span> z_schema = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./helpers/z_schema.js'</span>);
-<span class="hljs-keyword">var</span> colors = <span class="hljs-built_in">require</span>(<span class="hljs-string">'colors'</span>);
-<span class="hljs-keyword">var</span> vorpal = <span class="hljs-built_in">require</span>(<span class="hljs-string">'vorpal'</span>)();
-<span class="hljs-keyword">var</span> spawn = <span class="hljs-built_in">require</span>(<span class="hljs-string">'child_process'</span>).spawn;
+var appConfig = require('./config.json');
+var networks = require('./networks.json');
+var async = require('async');
+var checkIpInList = require('./helpers/checkIpInList.js');
+var extend = require('extend');
+var fs = require('fs');
+var genesisblock = require('./genesisBlock.json');
+var ripajs = require('ripajs');
+var https = require('https');
+var Logger = require('./logger.js');
+var packageJson = require('./package.json');
+var path = require('path');
+var program = require('commander');
+var Sequence = require('./helpers/sequence.js');
+var util = require('util');
+var z_schema = require('./helpers/z_schema.js');
+var colors = require('colors');
+var vorpal = require('vorpal')();
+var spawn = require('child_process').spawn;
 
 process.stdin.resume();
 
-<span class="hljs-keyword">var</span> versionBuild = fs.readFileSync(path.join(__dirname, <span class="hljs-string">'build'</span>), <span class="hljs-string">'utf8'</span>);
-
-<span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> gc !== <span class="hljs-string">'undefined'</span>) {
-	setInterval(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
-		gc();
-	}, <span class="hljs-number">60000</span>);
-}
+var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
 
 program
 	.version(packageJson.version)
-	.option(<span class="hljs-string">'-c, --config &lt;path&gt;'</span>, <span class="hljs-string">'config file path'</span>)
-	.option(<span class="hljs-string">'-g, --genesis &lt;path&gt;'</span>, <span class="hljs-string">'genesis block'</span>)
-	.option(<span class="hljs-string">'-p, --port &lt;port&gt;'</span>, <span class="hljs-string">'listening port number'</span>)
-	.option(<span class="hljs-string">'-a, --address &lt;ip&gt;'</span>, <span class="hljs-string">'listening host name or ip'</span>)
-	.option(<span class="hljs-string">'-x, --peers [peers...]'</span>, <span class="hljs-string">'peers list'</span>)
-	.option(<span class="hljs-string">'-l, --log &lt;level&gt;'</span>, <span class="hljs-string">'log level'</span>)
-	.option(<span class="hljs-string">'-i, --interactive'</span>, <span class="hljs-string">'launch cli'</span>)
+	.option('-c, --config &lt;path&gt;', 'config file path')
+	.option('-g, --genesis &lt;path&gt;', 'genesis block')
+	.option('-n, --networks &lt;path&gt;', 'networks definition file')
+	.option('-p, --port &lt;port&gt;', 'listening port number')
+	.option('-a, --address &lt;ip&gt;', 'listening host name or ip')
+	.option('-x, --peers [peers...]', 'peers list')
+	.option('-l, --log &lt;level&gt;', 'log level')
+	.option('-i, --interactive', 'launch cli')
 	.parse(process.argv);
 
-<span class="hljs-keyword">if</span> (program.config) {
-	appConfig = <span class="hljs-built_in">require</span>(path.resolve(process.cwd(), program.config));
+if (program.config) {
+	appConfig = require(path.resolve(process.cwd(), program.config));
 }
 
-<span class="hljs-keyword">if</span> (program.genesis) {
-	genesisblock = <span class="hljs-built_in">require</span>(path.resolve(process.cwd(), program.genesis));
+if (program.genesis) {
+	genesisblock = require(path.resolve(process.cwd(), program.genesis));
 }
 
-<span class="hljs-keyword">if</span> (program.port) {
+if (program.networks) {
+	networks = require(path.resolve(process.cwd(), program.networks));
+}
+
+if (program.port) {
 	appConfig.port = program.port;
 }
 
-<span class="hljs-keyword">if</span> (program.address) {
+if (program.address) {
 	appConfig.address = program.address;
 }
 
-<span class="hljs-keyword">if</span> (program.peers) {
-	<span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> program.peers === <span class="hljs-string">'string'</span>) {
-		appConfig.peers.list = program.peers.split(<span class="hljs-string">','</span>).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">peer</span>) </span>{
-			peer = peer.split(<span class="hljs-string">':'</span>);
-			<span class="hljs-keyword">return</span> {
-				<span class="hljs-attr">ip</span>: peer.shift(),
-				<span class="hljs-attr">port</span>: peer.shift() || appConfig.port
+if (program.peers) {
+	if (typeof program.peers === 'string') {
+		appConfig.peers.list = program.peers.split(',').map(function (peer) {
+			peer = peer.split(':');
+			return {
+				ip: peer.shift(),
+				port: peer.shift() || appConfig.port
 			};
 		});
-	} <span class="hljs-keyword">else</span> {
+	} else {
 		appConfig.peers.list = [];
 	}
 }
 
-<span class="hljs-keyword">if</span> (program.log) {
+if (program.log) {
 	appConfig.consoleLogLevel = program.log;
 }
 
-<span class="hljs-keyword">if</span> (program.interactive) {
-	appConfig.consoleLogLevel = <span class="hljs-string">"none"</span>;
+if (program.interactive) {
+	appConfig.consoleLogLevel = "none";
 }
 
-<span class="hljs-keyword">var</span> config = {
-	<span class="hljs-attr">db</span>: appConfig.db,
-	<span class="hljs-attr">modules</span>: {
-		<span class="hljs-attr">accounts</span>: <span class="hljs-string">'./modules/accounts.js'</span>,
-		<span class="hljs-attr">transactions</span>: <span class="hljs-string">'./modules/transactions.js'</span>,
-		<span class="hljs-attr">blocks</span>: <span class="hljs-string">'./modules/blocks.js'</span>,
-		<span class="hljs-attr">signatures</span>: <span class="hljs-string">'./modules/signatures.js'</span>,
-		<span class="hljs-attr">transport</span>: <span class="hljs-string">'./modules/transport.js'</span>,
-		<span class="hljs-attr">loader</span>: <span class="hljs-string">'./modules/loader.js'</span>,
-		<span class="hljs-attr">system</span>: <span class="hljs-string">'./modules/system.js'</span>,
-		<span class="hljs-attr">peers</span>: <span class="hljs-string">'./modules/peers.js'</span>,
-		<span class="hljs-attr">delegates</span>: <span class="hljs-string">'./modules/delegates.js'</span>,
-		<span class="hljs-attr">rounds</span>: <span class="hljs-string">'./modules/rounds.js'</span>,
-		<span class="hljs-attr">multisignatures</span>: <span class="hljs-string">'./modules/multisignatures.js'</span>,
-		<span class="hljs-attr">transactionPool</span>: <span class="hljs-string">'./modules/transactionPool.js'</span>,
-		<span class="hljs-attr">blockchain</span>: <span class="hljs-string">'./modules/blockchain.js'</span>,
-		<span class="hljs-attr">nodeManager</span>: <span class="hljs-string">'./modules/nodeManager.js'</span>
+var config = {
+	db: appConfig.db,
+	modules: {
+		accounts: './modules/accounts.js',
+		transactions: './modules/transactions.js',
+		blocks: './modules/blocks.js',
+		signatures: './modules/signatures.js',
+		transport: './modules/transport.js',
+		loader: './modules/loader.js',
+		system: './modules/system.js',
+		peers: './modules/peers.js',
+		delegates: './modules/delegates.js',
+		rounds: './modules/rounds.js',
+		multisignatures: './modules/multisignatures.js',
+		transactionPool: './modules/transactionPool.js',
+		blockchain: './modules/blockchain.js',
+		nodeManager: './modules/nodeManager.js'
 	}
 };
 
-<span class="hljs-keyword">if</span>(appConfig.modules){
-	<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> name <span class="hljs-keyword">in</span> appConfig.modules){
+if(appConfig.network){
+	appConfig.network = networks[appConfig.network];
+}
+
+else {
+	appConfig.network = networks.ripa;
+}
+
+if(appConfig.modules){
+	for(var name in appConfig.modules){
 		config.modules[name]=appConfig.modules[name];
 	}
 }
 
-<span class="hljs-keyword">var</span> logger = <span class="hljs-keyword">new</span> Logger({ <span class="hljs-attr">echo</span>: appConfig.consoleLogLevel, <span class="hljs-attr">errorLevel</span>: appConfig.fileLogLevel, <span class="hljs-attr">filename</span>: appConfig.logFileName });
+var logger = new Logger({ echo: appConfig.consoleLogLevel, errorLevel: appConfig.fileLogLevel, filename: appConfig.logFileName });
 
-<span class="hljs-keyword">var</span> d = <span class="hljs-built_in">require</span>(<span class="hljs-string">'domain'</span>).create();
+var d = require('domain').create();
 
-d.on(<span class="hljs-string">'error'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
-	logger.fatal(<span class="hljs-string">'Domain master'</span>, { <span class="hljs-attr">message</span>: err.message, <span class="hljs-attr">stack</span>: err.stack });
-	process.exit(<span class="hljs-number">0</span>);
+d.on('error', function (err) {
+	logger.fatal('Domain master', { message: err.message, stack: err.stack });
+	process.exit(0);
 });
 
-d.run(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
-	<span class="hljs-keyword">var</span> modules = [];
-	<span class="hljs-built_in">console</span>.log(colors.cyan(<span class="hljs-string">"\n\
+d.run(function () {
+	var modules = [];
+	console.log(colors.cyan("\n\
       {_       {_______    {__   {__       {___     {__    {____     {_____    {________\n\
      {_ __     {__    {__  {__  {__        {_ {__   {__  {__    {__  {__   {__ {__\n\
     {_  {__    {__    {__  {__ {__         {__ {__  {__{__        {__{__    {__{__\n\
@@ -252,73 +191,74 @@ d.run(<span class="hljs-function"><span class="hljs-keyword">function</span> (<s
 \n\n\
 	                     W E L C O M E  A B O A R D !\n\
 \n\
-"</span>));
-	<span class="hljs-keyword">async</span>.auto({
-		<span class="hljs-attr">config</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
-			<span class="hljs-keyword">try</span> {
-				appConfig.nethash = <span class="hljs-keyword">new</span> Buffer(genesisblock.payloadHash, <span class="hljs-string">'hex'</span>).toString(<span class="hljs-string">'hex'</span>);
-			} <span class="hljs-keyword">catch</span> (e) {
-				logger.error(<span class="hljs-string">'Failed to assign nethash from genesis block'</span>);
-				<span class="hljs-keyword">throw</span> <span class="hljs-built_in">Error</span>(e);
+"));
+	async.auto({
+		config: function (cb) {
+			try {
+				appConfig.nethash = new Buffer(genesisblock.payloadHash, 'hex').toString('hex');
+			} catch (e) {
+				logger.error('Failed to assign nethash from genesis block');
+				throw Error(e);
 			}
-			cb(<span class="hljs-literal">null</span>, appConfig);
+			cb(null, appConfig);
 		},
 
-		<span class="hljs-attr">logger</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
-			cb(<span class="hljs-literal">null</span>, logger);
+		logger: function (cb) {
+			cb(null, logger);
 		},
 
-		<span class="hljs-attr">build</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
-			cb(<span class="hljs-literal">null</span>, versionBuild);
+		build: function (cb) {
+			cb(null, versionBuild);
 		},
 
-		<span class="hljs-attr">genesisblock</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
-			cb(<span class="hljs-literal">null</span>, {
-				<span class="hljs-attr">block</span>: genesisblock
+		genesisblock: function (cb) {
+			cb(null, {
+				block: genesisblock
 			});
 		},
 
-		<span class="hljs-attr">schema</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
-			cb(<span class="hljs-literal">null</span>, <span class="hljs-keyword">new</span> z_schema());
+		schema: function (cb) {
+			var schema = new z_schema(appConfig.network).z_schema
+			cb(null, new schema());
 		},
 
-		<span class="hljs-attr">network</span>: [<span class="hljs-string">'config'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
-			<span class="hljs-keyword">var</span> express = <span class="hljs-built_in">require</span>(<span class="hljs-string">'express'</span>);
-			<span class="hljs-keyword">var</span> compression = <span class="hljs-built_in">require</span>(<span class="hljs-string">'compression'</span>);
-			<span class="hljs-keyword">var</span> cors = <span class="hljs-built_in">require</span>(<span class="hljs-string">'cors'</span>);
-			<span class="hljs-keyword">var</span> app = express();
+		network: ['config', function (scope, cb) {
+			var express = require('express');
+			var compression = require('compression');
+			var cors = require('cors');
+			var app = express();
 
-			<span class="hljs-built_in">require</span>(<span class="hljs-string">'./helpers/request-limiter'</span>)(app, appConfig);
+			require('./helpers/request-limiter')(app, appConfig);
 
-			app.use(compression({ <span class="hljs-attr">level</span>: <span class="hljs-number">6</span> }));
+			app.use(compression({ level: 6 }));
 			app.use(cors());
-			app.options(<span class="hljs-string">'*'</span>, cors());
+			app.options('*', cors());
 
-			<span class="hljs-keyword">var</span> server = <span class="hljs-built_in">require</span>(<span class="hljs-string">'http'</span>).createServer(app);
-			<span class="hljs-keyword">var</span> io = <span class="hljs-built_in">require</span>(<span class="hljs-string">'socket.io'</span>)(server);
+			var server = require('http').createServer(app);
+			var io = require('socket.io')(server);
 
-			<span class="hljs-keyword">var</span> privateKey, certificate, https, https_io;
+			var privateKey, certificate, https, https_io;
 
-			<span class="hljs-keyword">if</span> (scope.config.ssl.enabled) {
+			if (scope.config.ssl.enabled) {
 				privateKey = fs.readFileSync(scope.config.ssl.options.key);
 				certificate = fs.readFileSync(scope.config.ssl.options.cert);
 
-				https = <span class="hljs-built_in">require</span>(<span class="hljs-string">'https'</span>).createServer({
-					<span class="hljs-attr">key</span>: privateKey,
-					<span class="hljs-attr">cert</span>: certificate,
-					<span class="hljs-attr">ciphers</span>: <span class="hljs-string">'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:'</span> + <span class="hljs-string">'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:'</span> + <span class="hljs-string">'!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'</span>
+				https = require('https').createServer({
+					key: privateKey,
+					cert: certificate,
+					ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:' + 'ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:' + '!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
 				}, app);
 
-				https_io = <span class="hljs-built_in">require</span>(<span class="hljs-string">'socket.io'</span>)(https);
+				https_io = require('socket.io')(https);
 			}
 
-			cb(<span class="hljs-literal">null</span>, {
-				<span class="hljs-attr">express</span>: express,
-				<span class="hljs-attr">app</span>: app,
-				<span class="hljs-attr">server</span>: server,
-				<span class="hljs-attr">io</span>: io,
-				<span class="hljs-attr">https</span>: https,
-				<span class="hljs-attr">https_io</span>: https_io
+			cb(null, {
+				express: express,
+				app: app,
+				server: server,
+				io: io,
+				https: https,
+				https_io: https_io
 			});
 		}],</pre></div></div>
             
@@ -556,12 +496,12 @@ To balance transaction application (unconfirmed and confirmed)</p>
 			});
 
 			scope.network.server.listen(scope.config.port, scope.config.address, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
-				scope.logger.info(<span class="hljs-string">'# Ark node server started on: '</span> + scope.config.address + <span class="hljs-string">':'</span> + scope.config.port);
+				scope.logger.info(<span class="hljs-string">'# Ripa node server started on: '</span> + scope.config.address + <span class="hljs-string">':'</span> + scope.config.port);
 
 				<span class="hljs-keyword">if</span> (!err) {
 					<span class="hljs-keyword">if</span> (scope.config.ssl.enabled) {
 						scope.network.https.listen(scope.config.ssl.options.port, scope.config.ssl.options.address, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
-							scope.logger.info(<span class="hljs-string">'Ark https started: '</span> + scope.config.ssl.options.address + <span class="hljs-string">':'</span> + scope.config.ssl.options.port);
+							scope.logger.info(<span class="hljs-string">'Ripa https started: '</span> + scope.config.ssl.options.address + <span class="hljs-string">':'</span> + scope.config.ssl.options.port);
 
 							cb(err, scope.network);
 						});
@@ -579,11 +519,12 @@ To balance transaction application (unconfirmed and confirmed)</p>
 
 		}],
 
-		<span class="hljs-attr">ed</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
-			cb(<span class="hljs-literal">null</span>, <span class="hljs-built_in">require</span>(<span class="hljs-string">'./helpers/ed.js'</span>));
-		},
+		<span class="hljs-attr">crypto</span>: [<span class="hljs-string">'config'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
+			<span class="hljs-keyword">var</span> crypto = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./helpers/crypto.js'</span>)
+			cb(<span class="hljs-literal">null</span>, <span class="hljs-keyword">new</span> crypto(scope));
+		}],
 
-		<span class="hljs-attr">bus</span>: [<span class="hljs-string">'ed'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
+		<span class="hljs-attr">bus</span>: [<span class="hljs-string">'crypto'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
 			<span class="hljs-keyword">var</span> changeCase = <span class="hljs-built_in">require</span>(<span class="hljs-string">'change-case'</span>);
 			<span class="hljs-keyword">var</span> bus = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
 				<span class="hljs-keyword">this</span>.message = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
@@ -618,7 +559,7 @@ To balance transaction application (unconfirmed and confirmed)</p>
 				<span class="hljs-attr">db</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
 					cb(<span class="hljs-literal">null</span>, scope.db);
 				},
-				<span class="hljs-attr">ed</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
+				<span class="hljs-attr">crypto</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
 					cb(<span class="hljs-literal">null</span>, scope.crypto);
 				},
 				<span class="hljs-attr">logger</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">cb</span>) </span>{
@@ -632,13 +573,13 @@ To balance transaction application (unconfirmed and confirmed)</p>
 						<span class="hljs-attr">block</span>: genesisblock
 					});
 				},
-				<span class="hljs-attr">account</span>: [<span class="hljs-string">'db'</span>, <span class="hljs-string">'bus'</span>, <span class="hljs-string">'ed'</span>, <span class="hljs-string">'schema'</span>, <span class="hljs-string">'genesisblock'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
+				<span class="hljs-attr">account</span>: [<span class="hljs-string">'db'</span>, <span class="hljs-string">'bus'</span>, <span class="hljs-string">'crypto'</span>, <span class="hljs-string">'schema'</span>, <span class="hljs-string">'genesisblock'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
 					<span class="hljs-keyword">new</span> Account(scope, cb);
 				}],
-				<span class="hljs-attr">transaction</span>: [<span class="hljs-string">'db'</span>, <span class="hljs-string">'bus'</span>, <span class="hljs-string">'ed'</span>, <span class="hljs-string">'schema'</span>, <span class="hljs-string">'genesisblock'</span>, <span class="hljs-string">'account'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
+				<span class="hljs-attr">transaction</span>: [<span class="hljs-string">'db'</span>, <span class="hljs-string">'bus'</span>, <span class="hljs-string">'crypto'</span>, <span class="hljs-string">'schema'</span>, <span class="hljs-string">'genesisblock'</span>, <span class="hljs-string">'account'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
 					<span class="hljs-keyword">new</span> Transaction(scope, cb);
 				}],
-				<span class="hljs-attr">block</span>: [<span class="hljs-string">'db'</span>, <span class="hljs-string">'bus'</span>, <span class="hljs-string">'ed'</span>, <span class="hljs-string">'schema'</span>, <span class="hljs-string">'genesisblock'</span>, <span class="hljs-string">'account'</span>, <span class="hljs-string">'transaction'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
+				<span class="hljs-attr">block</span>: [<span class="hljs-string">'db'</span>, <span class="hljs-string">'bus'</span>, <span class="hljs-string">'crypto'</span>, <span class="hljs-string">'schema'</span>, <span class="hljs-string">'genesisblock'</span>, <span class="hljs-string">'account'</span>, <span class="hljs-string">'transaction'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">scope, cb</span>) </span>{
 					<span class="hljs-keyword">new</span> Block(scope, cb);
 				}]
 			}, cb);
@@ -675,7 +616,7 @@ To balance transaction application (unconfirmed and confirmed)</p>
 		}]
 	}, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, scope</span>) </span>{
 		<span class="hljs-keyword">if</span> (err) {
-			logger.fatal(err);
+			scope.logger.fatal(err);
 		} <span class="hljs-keyword">else</span> {
 
 			scope.logger.info(<span class="hljs-string">'Modules ready and launched'</span>);
@@ -759,9 +700,8 @@ process.on(<span class="hljs-string">'uncaughtException'</span>, <span class="hl
 			});
 			self.log(<span class="hljs-string">"Forging:"</span>, scope.modules.delegates.isForging());
 			self.log(<span class="hljs-string">"Active Delegate:"</span>, scope.modules.delegates.isActiveDelegate());
-			scope.modules.peers.list(<span class="hljs-literal">null</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, peers</span>)</span>{
-				self.log(<span class="hljs-string">"Connected Peers:"</span>, peers.length);
-			});
+			<span class="hljs-keyword">var</span> peers = scope.modules.peers.listBroadcastPeers();
+			self.log(<span class="hljs-string">"Connected Peers:"</span>, peers.length);
 			self.log(<span class="hljs-string">"Mempool size:"</span>, scope.modules.transactionPool.getMempoolSize());
 
 	  });
@@ -833,8 +773,8 @@ process.on(<span class="hljs-string">'uncaughtException'</span>, <span class="hl
 			<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
 	    <span class="hljs-keyword">var</span> passphrase = <span class="hljs-built_in">require</span>(<span class="hljs-string">"bip39"</span>).generateMnemonic();
 			self.log(<span class="hljs-string">"Seed    - private:"</span>,passphrase);
-			self.log(<span class="hljs-string">"WIF     - private:"</span>,<span class="hljs-built_in">require</span>(<span class="hljs-string">"arkjs"</span>).crypto.getKeys(passphrase).toWIF());
-			self.log(<span class="hljs-string">"Address - public :"</span>,<span class="hljs-built_in">require</span>(<span class="hljs-string">"arkjs"</span>).crypto.getAddress(<span class="hljs-built_in">require</span>(<span class="hljs-string">"arkjs"</span>).crypto.getKeys(passphrase).publicKey));
+			self.log(<span class="hljs-string">"WIF     - private:"</span>,<span class="hljs-built_in">require</span>(<span class="hljs-string">"ripajs"</span>).crypto.getKeys(passphrase).toWIF());
+			self.log(<span class="hljs-string">"Address - public :"</span>,<span class="hljs-built_in">require</span>(<span class="hljs-string">"ripajs"</span>).crypto.getAddress(<span class="hljs-built_in">require</span>(<span class="hljs-string">"ripajs"</span>).crypto.getKeys(passphrase).publicKey));
 			callback();
 	  });
 	<span class="hljs-keyword">var</span> account=<span class="hljs-literal">null</span>;
@@ -858,6 +798,18 @@ process.on(<span class="hljs-string">'uncaughtException'</span>, <span class="hl
 	    <span class="hljs-keyword">this</span>.log(account[command]);
 			callback();
 	  });
+
+		vorpal
+		  .command(<span class="hljs-string">'spv fix'</span>, <span class="hljs-string">'fix database using SPV on all accounts'</span>)
+		  .action(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">args, callback</span>) </span>{
+				<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+				scope.modules.nodeManager.fixDatabase(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, results</span>)</span>{
+					<span class="hljs-keyword">if</span>(err) self.log(colors.red(err));
+					<span class="hljs-keyword">else</span> self.log(<span class="hljs-string">"Fixed "</span>+results[<span class="hljs-number">3</span>].length+<span class="hljs-string">" accounts"</span>);
+					callback();
+				});
+		  });
+
 	vorpal
 	  .command(<span class="hljs-string">'spv &lt;address&gt;'</span>, <span class="hljs-string">'Perform Simple Payment Verification against the blockchain'</span>)
 	  .action(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">args, callback</span>) </span>{
@@ -897,10 +849,10 @@ process.on(<span class="hljs-string">'uncaughtException'</span>, <span class="hl
 
 	  });
 
-	vorpal.history(<span class="hljs-string">'ark-node'</span>);
+	vorpal.history(<span class="hljs-string">'ripa-node'</span>);
 
 	vorpal
-	  .delimiter(<span class="hljs-string">'ark-node&gt;'</span>)
+	  .delimiter(<span class="hljs-string">'ripa-node&gt;'</span>)
 	  .show();
 }</pre></div></div>
             

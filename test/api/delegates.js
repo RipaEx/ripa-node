@@ -1,26 +1,27 @@
 'use strict'; /*jslint mocha:true, expr:true */
 
 var node = require('./../node.js');
+var constants = require('../../helpers/constants');
 
-function openAccount (params, done) {
+function openAccount(params, done) {
 	node.post('/api/accounts/open', params, function (err, res) {
 		done(err, res);
 	});
 }
 
-function sendArk (params, done) {
+function sendRipa(params, done) {
 	node.put('/api/transactions/', params, function (err, res) {
 		done(err, res);
 	});
 }
 
-function putAccountsDelegates (params, done) {
+function putAccountsDelegates(params, done) {
 	node.put('/api/accounts/delegates', params, function (err, res) {
 		done(err, res);
 	});
 }
 
-function putDelegates (params, done) {
+function putDelegates(params, done) {
 	node.put('/api/delegates', params, function (err, res) {
 		done(err, res);
 	});
@@ -40,7 +41,7 @@ describe('PUT /api/accounts/delegates without funds', function () {
 			delegates: ['+' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough ARK: [a-zA-Z0-9]+ balance: 0/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough RIPA: [a-zA-Z0-9]+ balance: 0/);
 			done();
 		});
 	});
@@ -51,7 +52,7 @@ describe('PUT /api/accounts/delegates without funds', function () {
 			delegates: ['-' + node.eAccount.publicKey]
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough ARK: [a-zA-Z0-9]+ balance: 0/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough RIPA: [a-zA-Z0-9]+ balance: 0/);
 			done();
 		});
 	});
@@ -71,7 +72,7 @@ describe('PUT /api/delegates without funds', function () {
 			username: account.username
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough ARK: [a-zA-Z0-9]+ balance: 0/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough RIPA: [a-zA-Z0-9]+ balance: 0/);
 			done();
 		});
 	});
@@ -81,9 +82,9 @@ describe('PUT /api/accounts/delegates with funds', function () {
 	var account = node.randomAccount();
 
 	before(function (done) {
-		sendArk({
+		sendRipa({
 			secret: node.gAccount.password,
-			amount: node.Ark,
+			amount: node.Ripa,
 			recipientId: account.address
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -267,9 +268,9 @@ describe('PUT /api/delegates with funds', function () {
 	});
 
 	beforeEach(function (done) {
-		sendArk({
+		sendRipa({
 			secret: node.gAccount.password,
-			amount: node.Ark,
+			amount: node.Ripa,
 			recipientId: account.address
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -384,7 +385,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			node.expect(res.body.delegates[0]).to.have.property('username');
 			node.expect(res.body.delegates[0]).to.have.property('address');
 			node.expect(res.body.delegates[0]).to.have.property('publicKey');
@@ -440,25 +441,25 @@ describe('GET /api/delegates', function () {
 		});
 	});
 
-	it('using limit == 51 should be ok', function (done) {
-		var limit = 51;
+	it('using limit == constants.activeDelegates should be ok', function (done) {
+		var limit = constants.activeDelegates;
 		var params = 'limit=' + limit;
 
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			done();
 		});
 	});
 
-	it('using limit > 51 should fail', function (done) {
-		var limit = 52;
+	it('using limit > constants.activeDelegates should fail', function (done) {
+		var limit = constants.activeDelegates + 1;
 		var params = 'limit=' + limit;
 
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Value 52 is greater than maximum 51');
+			node.expect(res.body).to.have.property('error').to.equal('Value ' + (constants.activeDelegates + 1) + ' is greater than maximum ' + constants.activeDelegates);
 			done();
 		});
 	});
@@ -481,7 +482,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			done();
 		});
 	});
@@ -515,7 +516,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			done();
 		});
 	});
@@ -527,7 +528,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			done();
 		});
 	});
@@ -539,7 +540,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			for (var i = 0; i < res.body.delegates.length; i++) {
 				if (res.body.delegates[i + 1] != null) {
 					node.expect(res.body.delegates[i].rate).to.be.at.below(res.body.delegates[i + 1].rate);
@@ -556,7 +557,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			for (var i = 0; i < res.body.delegates.length; i++) {
 				if (res.body.delegates[i + 1] != null) {
 					node.expect(res.body.delegates[i].rate).to.be.at.above(res.body.delegates[i + 1].rate);
@@ -573,7 +574,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			for (var i = 0; i < res.body.delegates.length; i++) {
 				if (res.body.delegates[i + 1] != null) {
 					node.expect(res.body.delegates[i].vote).to.be.at.most(res.body.delegates[i + 1].vote);
@@ -590,7 +591,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			for (var i = 0; i < res.body.delegates.length; i++) {
 				if (res.body.delegates[i + 1] != null) {
 					node.expect(res.body.delegates[i].vote).to.be.at.least(res.body.delegates[i + 1].vote);
@@ -607,7 +608,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			done();
 		});
 	});
@@ -619,7 +620,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			done();
 		});
 	});
@@ -631,7 +632,7 @@ describe('GET /api/delegates', function () {
 		node.get('/api/delegates?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.lengthOf(51);
+			node.expect(res.body.delegates).to.have.lengthOf(constants.activeDelegates);
 			done();
 		});
 	});
@@ -642,7 +643,7 @@ describe('GET /api/delegates/count', function () {
 	it('should be ok', function (done) {
 		node.get('/api/delegates/count', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
-			node.expect(res.body).to.have.property('count').to.be.at.least(51);
+			node.expect(res.body).to.have.property('count').to.be.at.least(constants.activeDelegates);
 			done();
 		});
 	});
@@ -652,9 +653,9 @@ describe('GET /api/delegates/voters', function () {
 	var account = node.randomAccount();
 
 	before(function (done) {
-		sendArk({
+		sendRipa({
 			secret: node.gAccount.password,
-			amount: node.Ark,
+			amount: node.Ripa,
 			recipientId: account.address
 		}, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -774,7 +775,7 @@ describe('GET /api/delegates/search', function () {
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(11);
+			node.expect(res.body.delegates).to.have.length(13);
 			done();
 		});
 	});
@@ -785,7 +786,7 @@ describe('GET /api/delegates/search', function () {
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(1);
+			node.expect(res.body.delegates).to.have.length(3);
 			done();
 		});
 	});
@@ -822,9 +823,11 @@ describe('GET /api/delegates/search', function () {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
+			var expectedLength = constants.activeDelegates;
+			if (expectedLength > 100) expectedLength = 100;
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(51);
+			node.expect(res.body.delegates).to.have.length(expectedLength);
 			done();
 		});
 	});
@@ -890,9 +893,11 @@ describe('GET /api/delegates/search', function () {
 		var limit = 100;
 
 		node.get('/api/delegates/search?q=' + q + '&limit=' + limit, function (err, res) {
+			var expectedLength = constants.activeDelegates;
+			if (expectedLength > limit) expectedLength = limit;
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(51);
+			node.expect(res.body.delegates).to.have.length(expectedLength);
 			done();
 		});
 	});
@@ -922,13 +927,15 @@ describe('GET /api/delegates/search', function () {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q, function (err, res) {
+			var expectedLength = constants.activeDelegates;
+			if (expectedLength > 100) expectedLength = 100;
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(51);
+			node.expect(res.body.delegates).to.have.length(expectedLength);
 			node.expect(res.body.delegates[0]).to.have.property('username');
 			node.expect(res.body.delegates[0].username).to.equal('genesis_1');
 			node.expect(res.body.delegates[24]).to.have.property('username');
-			node.expect(res.body.delegates[24].username).to.equal('genesis_31');
+			node.expect(res.body.delegates[24].username).to.equal('genesis_3');
 			done();
 		});
 	});
@@ -937,13 +944,15 @@ describe('GET /api/delegates/search', function () {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q + '&orderBy=username:asc', function (err, res) {
+			var expectedLength = constants.activeDelegates;
+			if (expectedLength > 100) expectedLength = 100;
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(51);
+			node.expect(res.body.delegates).to.have.length(expectedLength);
 			node.expect(res.body.delegates[0]).to.have.property('username');
 			node.expect(res.body.delegates[0].username).to.equal('genesis_1');
 			node.expect(res.body.delegates[24]).to.have.property('username');
-			node.expect(res.body.delegates[24].username).to.equal('genesis_31');
+			node.expect(res.body.delegates[24].username).to.equal('genesis_3');
 			done();
 		});
 	});
@@ -952,13 +961,16 @@ describe('GET /api/delegates/search', function () {
 		var q = 'genesis_';
 
 		node.get('/api/delegates/search?q=' + q + '&orderBy=username:desc', function (err, res) {
+			var limit = 100;
+			var expectedLength = constants.activeDelegates;
+			if (expectedLength > limit) expectedLength = limit;
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('delegates').that.is.an('array');
-			node.expect(res.body.delegates).to.have.length(51);
+			node.expect(res.body.delegates).to.have.length(expectedLength);
 			node.expect(res.body.delegates[0]).to.have.property('username');
-			node.expect(res.body.delegates[0].username).to.equal('genesis_9');
+			node.expect(res.body.delegates[0].username).to.equal('genesis_99');
 			node.expect(res.body.delegates[24]).to.have.property('username');
-			node.expect(res.body.delegates[24].username).to.equal('genesis_33');
+			node.expect(res.body.delegates[24].username).to.equal('genesis_77');
 			done();
 		});
 	});
@@ -990,7 +1002,7 @@ describe('GET /api/delegates/forging/status', function () {
 	});
 
 	it('using disabled publicKey should be ok', function (done) {
-		node.get('/api/delegates/forging/status?publicKey=' + '03f0726b59f56ac009a8bd3f9623f681cdd5318dc4f5042b4938716c46b1b05e93', function (err, res) {
+		node.get('/api/delegates/forging/status?publicKey=' + '022d9a7f94f0f9664271e6cda825c7b48b6dbfc4f4c8e30800b9c668ffc05891df', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('enabled').to.be.false;
 			done();
@@ -998,7 +1010,7 @@ describe('GET /api/delegates/forging/status', function () {
 	});
 
 	it('using enabled publicKey should be ok', function (done) {
-		node.get('/api/delegates/forging/status?publicKey=' + '026534ccddb67163e631c7667ffa2f999755281313ee396874df3cbf569e831e62', function (err, res) {
+		node.get('/api/delegates/forging/status?publicKey=' + '03894341ede54acf6ab5ce396d299c051611a53585af1046ac5d65beb53ba57871', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('enabled').to.be.true;
 			done();

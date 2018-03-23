@@ -16,5 +16,8 @@ config.main.json
 genesisBlock.main.json
 config.ripa.autoforging.json
 .vagrant
-private/
+task/private/
 package-lock.json
+test/config.json
+test/delegatesPassphrases.ripa.json
+test/genesisPassphrase.ripa.json

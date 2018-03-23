@@ -2,10 +2,10 @@
 process.env.SILENT='true';
 // Root object
 var node = {};
-var networkName = "testnet"
+var networkName = "ripa"
 var network = require('../networks.json')[networkName];
-node.ark = require('ripajs');
-node.ark.crypto.setNetworkVersion(network.pubKeyHash);
+node.ripa = require('ripajs');
+node.ripa.crypto.setNetworkVersion(network.pubKeyHash);
 
 // Requires
 node.bignum = require('../helpers/bignum.js');
@@ -31,10 +31,10 @@ require('colors');
 node.baseUrl = 'http://localhost:' + node.config.port;
 node.api = node.supertest(node.baseUrl);
 
-node.normalizer = 100000000; // Use this to convert ARK amount to normal value
+node.normalizer = 100000000; // Use this to convert ripa amount to normal value
 node.blockTime = 10000; // Block time in miliseconds
 node.blockTimePlus = 12000; // Block time + 2 seconds in miliseconds
-node.version = '0.0.0'; // Node version
+node.version = '0.2.0'; // Node version
 
 // Transaction fees
 node.fees = {
@@ -51,7 +51,7 @@ node.eAccount = node.delegates[0];
 node.eAccount.password = node.eAccount.passphrase;
 
 console.log(node.eAccount);
-// Genesis account, initially holding 125M total supply
+// Genesis account, initially holding 115M total supply
 
 // Optional logging
 if (process.env.SILENT === 'true') {
@@ -60,8 +60,8 @@ if (process.env.SILENT === 'true') {
 	node.debug = console.log;
 }
 
-// Random ARK amount
-node.Ark = Math.floor(Math.random() * (100000 * 100000000)) + 1;
+// Random ripa amount
+node.Ripa = Math.floor(Math.random() * (100000 * 100000000)) + 1;
 
 // Returns a random delegate name
 node.randomDelegateName = function () {
@@ -270,8 +270,8 @@ node.randomAccount = function () {
 	account.password = node.randomPassword();
 	account.secondPassword = node.randomPassword();
 	account.username = node.randomDelegateName();
-	account.publicKey = node.ark.crypto.getKeys(account.password, network).publicKey;
-	account.address = node.ark.crypto.getAddress(account.publicKey, network.pubKeyHash);
+	account.publicKey = node.ripa.crypto.getKeys(account.password, network).publicKey;
+	account.address = node.ripa.crypto.getAddress(account.publicKey, network.pubKeyHash);
 
 	return account;
 };

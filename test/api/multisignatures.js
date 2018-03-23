@@ -19,23 +19,23 @@ var multiSigTx = {
 	txId: ''
 };
 
-function sendArk (account, i, done) {
-	var randomArk = node.randomArk();
+function sendRipa (account, i, done) {
+	var randomRipa = node.randomRipa();
 
 	node.put('/api/transactions/', {
 		secret: node.gAccount.password,
-		amount: randomArk,
+		amount: randomRipa,
 		recipientId: account.address
 	}, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		if (res.body.success && i != null) {
-			accounts[i].balance = randomArk / node.normalizer;
+			accounts[i].balance = randomRipa / node.normalizer;
 		}
 		done();
 	});
 }
 
-function sendArkFromMultisigAccount (amount, recipient, done) {
+function sendRipaFromMultisigAccount (amount, recipient, done) {
 	node.put('/api/transactions/', {
 		secret: multisigAccount.password,
 		amount: amount,
@@ -88,7 +88,7 @@ function makeKeysGroup () {
 before(function (done) {
 	var i = 0;
 	async.eachSeries(accounts, function (account, eachCb) {
-		sendArk(account, i, function () {
+		sendRipa(account, i, function () {
 			i++;
 			return eachCb();
 		});
@@ -98,7 +98,7 @@ before(function (done) {
 });
 
 before(function (done) {
-	sendArk(multisigAccount, null, done);
+	sendRipa(multisigAccount, null, done);
 });
 
 before(function (done) {
@@ -131,7 +131,7 @@ describe('PUT /api/multisignatures', function () {
 
 		node.put('/api/multisignatures', validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
-			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough ARK: [a-zA-Z0-9]+ balance: 0/);
+			node.expect(res.body).to.have.property('error').to.match(/Account does not have enough RIPA: [a-zA-Z0-9]+ balance: 0/);
 			done();
 		});
 	});
@@ -365,7 +365,7 @@ describe('GET /api/multisignatures/pending', function () {
 describe('PUT /api/api/transactions/', function () {
 
 	it('when group transaction is pending should be ok', function (done) {
-		sendArkFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
+		sendRipaFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
 			node.onNewBlock(function (err) {
 				node.get('/api/transactions/get?id=' + transactionId, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
@@ -453,7 +453,7 @@ describe('POST /api/multisignatures/sign (group)', function () {
 describe('POST /api/multisignatures/sign (transaction)', function () {
 
 	before(function (done) {
-		sendArkFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
+		sendRipaFromMultisigAccount(100000000, node.gAccount.address, function (err, transactionId) {
 			multiSigTx.txId = transactionId;
 			done();
 		});

@@ -249,16 +249,16 @@ describe('BlockReward', function () {
 			expect(blockReward.calcSupply).to.throw(/Invalid block height/);
 		});
 
-		it('when height == 0 should return 12500000000000000', function () {
-			expect(blockReward.calcSupply(0)).to.equal(12500000000000000);
+		it('when height == 0 should return constants.totalAmount', function () {
+			expect(blockReward.calcSupply(0)).to.equal(constants.totalAmount);
 		});
 
-		it('when height == 1 should return 12500000000000000', function () {
-			expect(blockReward.calcSupply(1)).to.equal(12500000000000000);
+		it('when height == 1 should return constants.totalAmount', function () {
+			expect(blockReward.calcSupply(1)).to.equal(constants.totalAmount);
 		});
 
-		it('when height == (offset - 1) should return 12500000000000000', function () {
-			expect(blockReward.calcSupply(1451519)).to.equal(12500000000000000);
+		it('when height == (offset - 1) should return constants.totalAmount', function () {
+			expect(blockReward.calcSupply(1451519)).to.equal(constants.totalAmount);
 		});
 
 		// it('when height == (offset) should return 10725760000000000', function () {

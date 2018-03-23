@@ -15,13 +15,13 @@ function putTransaction (params, done) {
 	node.put('/api/transactions', params, done);
 }
 
-function sendArk (account, done) {
-	var randomArk = node.randomArk();
-	var expectedFee = node.expectedFee(randomArk);
+function sendRipa (account, done) {
+	var randomRipa = node.randomRipa();
+	var expectedFee = node.expectedFee(randomRipa);
 
 	putTransaction({
 		secret: node.gAccount.password,
-		amount: randomArk,
+		amount: randomRipa,
 		recipientId: account.address
 	}, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
@@ -29,9 +29,9 @@ function sendArk (account, done) {
 		transactionList.push({
 			'sender': node.gAccount.address,
 			'recipient': account.address,
-			'grossSent': (randomArk + expectedFee) / node.normalizer,
+			'grossSent': (randomRipa + expectedFee) / node.normalizer,
 			'fee': expectedFee / node.normalizer,
-			'netSent': randomArk / node.normalizer,
+			'netSent': randomRipa / node.normalizer,
 			'txId': res.body.transactionId,
 			'type': node.txTypes.SEND
 		});
@@ -41,13 +41,13 @@ function sendArk (account, done) {
 
 before(function (done) {
 	setTimeout(function () {
-		sendArk(account, done);
+		sendRipa(account, done);
 	}, 2000);
 });
 
 before(function (done) {
 	setTimeout(function () {
-		sendArk(account2, done);
+		sendRipa(account2, done);
 	}, 2000);
 });
 

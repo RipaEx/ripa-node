@@ -87,8 +87,8 @@ node.randomProperty = function (obj, needKey) {
 	}
 };
 
-// Returns random ARK amount
-node.randomArk = function () {
+// Returns random Ripa amount
+node.randomRipa = function () {
 	return Math.floor(Math.random() * (100 * 100000000)) + (10 * 100000000);
 };
 

@@ -2,6 +2,7 @@
 
 var async = require('async');
 var node = require('./../node.js');
+var constants = require('../../helpers/constants');
 
 var account = node.randomAccount();
 
@@ -39,7 +40,7 @@ function postVotes (params, done) {
 			});
 		}, function (err) {
 			async.eachSeries(params.delegates, function (delegate, eachCb) {
-				var transaction = node.ark.vote.createVote(params.passphrase, [params.action + delegate]);
+				var transaction = node.ripa.vote.createVote(params.passphrase, [params.action + delegate]);
 
 				postVote(transaction, function (err, res) {
 					params.voteCb(err, res);
@@ -60,7 +61,7 @@ function postVote (transaction, done) {
 	});
 }
 
-function sendArk (params, done) {
+function sendRipa (params, done) {
 	node.put('/api/transactions', params, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
 		node.onNewBlock(function (err) {
@@ -71,7 +72,7 @@ function sendArk (params, done) {
 
 function registerDelegate (account, done) {
 	account.username = node.randomDelegateName().toLowerCase();
-	var transaction = node.ark.delegate.createDelegate(account.password, account.username);
+	var transaction = node.ripa.delegate.createDelegate(account.password, account.username);
 
 	node.post('/peer/transactions', { transactions: [transaction] }, function (err, res) {
 		node.expect(res.body).to.have.property('success').to.be.ok;
@@ -84,7 +85,7 @@ function registerDelegate (account, done) {
 describe('POST /peer/transactions', function () {
 
 	before(function (done) {
-		sendArk({
+		sendRipa({
 			secret: node.gAccount.password,
 			amount: 100000000000,
 			recipientId: account.address
@@ -95,7 +96,7 @@ describe('POST /peer/transactions', function () {
 		getDelegates(function (err, res) {
 			delegates = res.body.delegates.map(function (delegate) {
 				return delegate.publicKey;
-			}).slice(0, 51);
+			}).slice(0, constants.activeDelegates);
 
 			delegate = res.body.delegates[0].publicKey;
 
@@ -133,7 +134,7 @@ describe('POST /peer/transactions', function () {
 	});
 
 	it('using undefined transaction.asset', function (done) {
-		var transaction = node.ark.vote.createVote(account.password, ['+' + delegate]);
+		var transaction = node.ripa.vote.createVote(account.password, ['+' + delegate]);
 
 		delete transaction.asset;
 
@@ -146,11 +147,11 @@ describe('POST /peer/transactions', function () {
 
 	it('voting for a delegate and then removing again within same block should fail', function (done) {
 		node.onNewBlock(function (err) {
-			var transaction = node.ark.vote.createVote(account.password, ['+' + delegate]);
+			var transaction = node.ripa.vote.createVote(account.password, ['+' + delegate]);
 			postVote(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 
-				var transaction2 = node.ark.vote.createVote(account.password, ['-' + delegate]);
+				var transaction2 = node.ripa.vote.createVote(account.password, ['-' + delegate]);
 				postVote(transaction2, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
@@ -161,11 +162,11 @@ describe('POST /peer/transactions', function () {
 
 	it('removing votes from a delegate and then voting again within same block should fail', function (done) {
 		node.onNewBlock(function (err) {
-			var transaction = node.ark.vote.createVote(account.password, ['-' + delegate]);
+			var transaction = node.ripa.vote.createVote(account.password, ['-' + delegate]);
 			postVote(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 
-				var transaction2 = node.ark.vote.createVote(account.password, ['+' + delegate]);
+				var transaction2 = node.ripa.vote.createVote(account.password, ['+' + delegate]);
 				postVote(transaction2, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
 					done();
@@ -178,7 +179,7 @@ describe('POST /peer/transactions', function () {
 		async.series([
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
-					var transaction = node.ark.vote.createVote(account.password, ['+' + delegate]);
+					var transaction = node.ripa.vote.createVote(account.password, ['+' + delegate]);
 					postVote(transaction, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.ok;
 						done();
@@ -187,7 +188,7 @@ describe('POST /peer/transactions', function () {
 			},
 			function (seriesCb) {
 				node.onNewBlock(function (err) {
-					var transaction2 = node.ark.vote.createVote(account.password, ['+' + delegate]);
+					var transaction2 = node.ripa.vote.createVote(account.password, ['+' + delegate]);
 					postVote(transaction2, function (err, res) {
 						node.expect(res.body).to.have.property('success').to.be.not.ok;
 						done();
@@ -201,7 +202,7 @@ describe('POST /peer/transactions', function () {
 
 	it('removing votes from a delegate should be ok', function (done) {
 		node.onNewBlock(function (err) {
-			var transaction = node.ark.vote.createVote(account.password, ['-' + delegate]);
+			var transaction = node.ripa.vote.createVote(account.password, ['-' + delegate]);
 			postVote(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;
 				node.expect(res.body).to.have.property('transactionIds');
@@ -211,31 +212,27 @@ describe('POST /peer/transactions', function () {
 		});
 	});
 
-	it('voting for 33 delegates at once should be ok', function (done) {
+	it('voting for 33 delegates at once should fail', function (done) {
 		node.onNewBlock(function (err) {
-			var transaction = node.ark.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
+			var transaction = node.ripa.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
 				return '+' + delegate;
 			}));
 
 			postVote(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionIds');
-				node.expect(res.body.transactionIds[0]).to.equal(transaction.id);
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				done();
 			});
 		});
 	});
 
-	it('removing votes from 33 delegates at once should be ok', function (done) {
+	it('removing votes from 33 delegates at once should fail', function (done) {
 		node.onNewBlock(function (err) {
-			var transaction = node.ark.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
+			var transaction = node.ripa.vote.createVote(account.password, delegates.slice(0, 33).map(function (delegate) {
 				return '-' + delegate;
 			}));
 
 			postVote(transaction, function (err, res) {
-				node.expect(res.body).to.have.property('success').to.be.ok;
-				node.expect(res.body).to.have.property('transactionIds');
-				node.expect(res.body.transactionIds[0]).to.equal(transaction.id);
+				node.expect(res.body).to.have.property('success').to.be.not.ok;
 				done();
 			});
 		});
@@ -243,13 +240,13 @@ describe('POST /peer/transactions', function () {
 
 	it('voting for 34 delegates at once should fail', function (done) {
 		node.onNewBlock(function (err) {
-			var transaction = node.ark.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
+			var transaction = node.ripa.vote.createVote(account.password, delegates.slice(0, 34).map(function (delegate) {
 				return '+' + delegate;
 			}));
 
 			postVote(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+				node.expect(res.body).to.have.property('error').to.equal('Voting limit exceeded. Maximum is 1 vote per transaction');
 				done();
 			});
 		});
@@ -271,13 +268,13 @@ describe('POST /peer/transactions', function () {
 
 	it('removing votes from 2 delegates at once should fail', function (done) {
 		node.onNewBlock(function (err) {
-			var transaction = node.ark.vote.createVote(account.password, delegates.slice(0, 2).map(function (delegate) {
+			var transaction = node.ripa.vote.createVote(account.password, delegates.slice(0, 2).map(function (delegate) {
 				return '-' + delegate;
 			}));
 
 			postVote(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.not.ok;
-				node.expect(res.body).to.have.property('error').to.equal('Voting limit exceeded. Maximum is 33 votes per transaction');
+				node.expect(res.body).to.have.property('error').to.equal('Voting limit exceeded. Maximum is 1 vote per transaction');
 				done();
 			});
 		});
@@ -302,14 +299,14 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 		getDelegates(function (err, res) {
 			delegates = res.body.delegates.map(function (delegate) {
 				return delegate.publicKey;
-			}).slice(0, 51);
+			}).slice(0, constants.activeDelegates);
 
 			done();
 		});
 	});
 
 	before(function (done) {
-		sendArk({
+		sendRipa({
 			secret: node.gAccount.password,
 			amount: 100000000000,
 			recipientId: account.address
@@ -321,7 +318,7 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 	});
 
 	it('voting for self should be ok', function (done) {
-		var transaction = node.ark.vote.createVote(account.password, ['+' + account.publicKey]);
+		var transaction = node.ripa.vote.createVote(account.password, ['+' + account.publicKey]);
 
 		postVote(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
@@ -344,7 +341,9 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 					passphrase: account.password,
 					action: '+',
 					voteCb: function (err, res) {
-						node.expect(res.body).to.have.property('success').to.be.ok;
+//						node.expect(res.body).to.have.property('success').to.be.ok;
+						node.expect(res.body).to.have.property('success').to.be.not.ok;
+						node.expect(res.body).to.have.property('error').to.equal('Maximum number of 1 votes exceeded (1 too many)');	
 					}
 				}, seriesCb);
 			},
@@ -352,13 +351,13 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 				var slicedDelegates = delegates.slice(-25);
 				node.expect(slicedDelegates).to.have.lengthOf(25);
 
-				var transaction = node.ark.vote.createVote(account.password, slicedDelegates.map(function (delegate) {
+				var transaction = node.ripa.vote.createVote(account.password, slicedDelegates.map(function (delegate) {
 					return '+' + delegate;
 				}));
 
 				postVote(transaction, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.not.ok;
-					node.expect(res.body).to.have.property('error').to.equal('Maximum number of 51 votes exceeded (1 too many)');
+					node.expect(res.body).to.have.property('error').to.equal('Voting limit exceeded. Maximum is 1 vote per transaction');
 					seriesCb();
 				});
 			}
@@ -368,7 +367,7 @@ describe('POST /peer/transactions after registering a new delegate', function ()
 	});
 
 	it('removing vote from self should be ok', function (done) {
-		var transaction = node.ark.vote.createVote(account.password, ['-' + account.publicKey]);
+		var transaction = node.ripa.vote.createVote(account.password, ['-' + account.publicKey]);
 
 		postVote(transaction, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;

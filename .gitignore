@@ -14,6 +14,7 @@ tmp
 .tags
 config.main.json
 genesisBlock.main.json
+config.ripa.autoforging.json
 .vagrant
 private/
 package-lock.json

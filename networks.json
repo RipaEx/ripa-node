@@ -5,6 +5,7 @@
       "public": 65166718,
       "private": 65165636
     },
+    "name": "mainnet",
     "pubKeyHash": 55,
     "wif": 170,
     "client": {

@@ -659,7 +659,7 @@ Loader.prototype.getNetworkSmallestBlock = function(){
 Loader.prototype.getNetwork = function (force, cb) {
 	// If __private.network.height is not so far (i.e. 1 round) from current node height, just return cached __private.network.
 	// If node is forging, do it more often (every block?)
-	var distance = modules.delegates.isActiveDelegate() ? 2 : 51;
+	var distance = modules.delegates.isActiveDelegate() ? 2 : constants.activeDelegates;
 
 	if (!force && __private.network.height > 0 && Math.abs(__private.network.height - modules.blocks.getLastBlock().height) < distance) {
 		return cb(null, __private.network);

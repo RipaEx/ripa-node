@@ -1,12 +1,12 @@
 'use strict';
 
 module.exports = {
-	activeDelegates: 51,
+	activeDelegates: 101,
 	maximumVotes: 1,
 	addressLength: 208,
 	blockHeaderLength: 248,
 	confirmationLength: 77,
-	epochTime: new Date(Date.UTC(2017, 2, 21, 13, 0, 0, 0)),
+	epochTime: new Date(Date.UTC(2018, 2, 21, 13, 0, 0, 0)),
 	fees:{
 		send: 10000000,
 		vote: 100000000,
@@ -41,6 +41,6 @@ module.exports = {
 		distance: 3000000, // Distance between each milestone
 	},
 	signatureLength: 196,
-	totalAmount: 12500000000000000,
+	totalAmount: 11500000000000000,
 	unconfirmedTransactionTimeOut: 10800 // 1080 blocks
 };

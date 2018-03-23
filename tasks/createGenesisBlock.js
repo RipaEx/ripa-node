@@ -7,6 +7,7 @@ var bip39 = require('bip39');
 var ByteBuffer = require('bytebuffer');
 var bignum = require('../helpers/bignum.js');
 var Crypto = require('../helpers/crypto.js');
+var constants = require('../helpers/constants');
 var networks = require('../networks.json');
 
 // network name that SHOULD already be preconfigured in ../networks.json
@@ -66,7 +67,7 @@ else {
 }
 
 // Total of premined token in satoshi. The premined accounts will be substracted to this
-var totalpremine = 12500000000000000;
+var totalpremine = 11500000000000000;
 
 
 // config file that will be tuned and exported
@@ -307,7 +308,7 @@ genesis.publicKey = ripajs.crypto.getKeys(genesis.passphrase).publicKey;
 genesis.address = ripajs.crypto.getAddress(genesis.publicKey, networks[config.network].pubKeyHash);
 
 // creation of delegates
-for (var i = 1; i < 52; i++) {
+for (var i = 1; i < (constants.activeDelegates + 1); i++) {
     var delegate = {
         'passphrase': bip39.generateMnemonic(),
         'username': "genesis_" + i
@@ -370,7 +371,7 @@ fs.writeFile(output_dir + "/genesisBlock." + config.network + ".json", JSON.stri
 fs.writeFile(output_dir + "/config." + config.network + ".json", JSON.stringify(config, null, 2));
 
 // add delegates passphrases in config for testing on one single node
-for (var i = 0; i < 51; i++) {
+for (var i = 0; i < constants.activeDelegates; i++) {
     config.forging.secret.push(delegates[i].passphrase);
 }
 fs.writeFile(private_dir + "/config." + config.network + ".autoforging.json", JSON.stringify(config, null, 2));
@@ -380,7 +381,7 @@ seed_peers.forEach(function (seed) {
     forging.push({ secret: [] });
 });
 // split all delegates accross all seed_peers
-for (var i = 0; i < 51; i++) {
+for (var i = 0; i < constants.activeDelegates; i++) {
     var seed_index = i % seed_peers.length;
     forging[seed_index].secret.push(delegates[i].passphrase);
 }

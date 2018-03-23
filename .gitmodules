@@ -1,0 +1,3 @@
+[submodule "test/ripa-js"]
+	path = test/ripa-js
+	url = https://github.com/RipaEx/ripa-js

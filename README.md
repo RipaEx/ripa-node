@@ -7,6 +7,7 @@ The Token Exchange Campaign is up at https://tec.ripaex.io
 This version is still alpha, use at your own risks
 
 ## Install, Upgrade etc...
+----------RIPA Commander script in development: method not available at the moment-----------
 You need to provision a linux (ubuntu tested) server (digital ocean, vultur or other).
 
 Then use the excellent ripa-commander script
@@ -15,6 +16,7 @@ cd
 wget https://ripaex.io/RIPAcommander.sh
 bash RIPAcommander.sh
 ```
+----------RIPA Commander script in development: method not available at the moment-----------
 
 For developers, please read below in section "Developer Installation"
 
@@ -59,23 +61,31 @@ sudo apt-get install -y curl build-essential python git
 Install PostgreSQL (min version: 9.5.2)
 
 ```
-sudo apt-get install -y postgresql postgresql-contrib
+sudo apt-get install -y postgresql postgresql-contrib libpq-dev
 sudo -u postgres createuser --createdb --password $USER
-createdb ripa_test
+createdb ripa_mainnet
+```
+After creating database in UBuntu 17.10 you also need to re-set the $USER password (still haven't understood why...)
+```
+psql ripa_mainnet
+\password
+<digit new password and press enter>
+\q
 ```
 
 Install Node.js (tested with version 6.9.2, but any recent LTS release should do):
 
 ```
-sudo apt-get install -y nodejs
+sudo apt-get install -y npm nodejs
 sudo npm install -g n
-sudo n 6.9.2
+sudo n 8.10.0
 ```
 
-Install grunt-cli (globally):
+Install grunt-cli and forever(globally):
 
 ```
 sudo npm install grunt-cli -g
+sudo npm install forever -g
 ```
 
 Clone this repository
@@ -90,20 +100,19 @@ npm install libpq secp256k1
 npm install
 ```
 
-## Launch
-To launch ripa on testnet:
+## Launch with forever
+Start
 ```
-createdb ripa_testnet
-node run start:testnet
+forever start app.js
 ```
-
-To launch ripa on devtnet:
+Watch log
 ```
-createdb ripa_devnet
-node run start:devnet
+tail -f logs/ripa.log
 ```
 
-To launch ripa on mainnet (when launched):
+## Launch from command line
+
+To launch ripa on mainnet:
 ```
 createdb ripa_mainnet
 node run start:mainnet

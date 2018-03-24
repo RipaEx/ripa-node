@@ -6,7 +6,7 @@ module.exports = {
 	addressLength: 208,
 	blockHeaderLength: 248,
 	confirmationLength: 77,
-	epochTime: new Date(Date.UTC(2018, 2, 21, 13, 0, 0, 0)),
+	epochTime: new Date(Date.UTC(2017, 2, 21, 13, 0, 0, 0)),
 	fees:{
 		send: 10000000,
 		vote: 100000000,

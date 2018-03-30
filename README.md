@@ -63,15 +63,8 @@ Install PostgreSQL (min version: 9.5.2)
 
 ```
 sudo apt-get install -y postgresql postgresql-contrib libpq-dev
-sudo -u postgres createuser --createdb --password $USER
+sudo -u postgres createuser --createdb --pwprompt $USER
 createdb ripa_mainnet
-```
-After creating database in UBuntu 17.10 you also need to re-set the $USER password (still haven't understood why...)
-```
-psql ripa_mainnet
-\password
-<digit new password and press enter>
-\q
 ```
 
 Install Node.js (tested with version 6.9.2, but any recent LTS release should do):

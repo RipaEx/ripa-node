@@ -7,17 +7,18 @@ The Token Exchange Campaign is up at https://tec.ripaex.io
 This version is still alpha, use at your own risks
 
 ## Install, Upgrade etc...
-----------RIPA Commander script in development: method not available at the moment-----------
 
 You need to provision a linux (ubuntu tested) server (digital ocean, vultur or other).
 
 Then use the excellent ripa-commander script
 ```
 cd
-wget https://ripaex.io/RIPAcommander.sh
-bash RIPAcommander.sh
+wget https://raw.githubusercontent.com/RipaEx/ripa-commander/master/RIPA_commander_mainnet.sh
+chmod 700 ~/RIPA_commander_mainnet.sh
+./RIPA_commander_mainnet.sh
+
+
 ```
-----------RIPA Commander script in development: method not available at the moment-----------
 
 For developers, please read below in section "Developer Installation"
 

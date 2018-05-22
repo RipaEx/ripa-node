@@ -1,4 +1,4 @@
-# Ripa
+![RIPA-NODE](./banner_medium_node.jpg)
 
 Ripa is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. For more information please refer to our website: https://ripaex.io/.
 

@@ -35,7 +35,7 @@
     "json-schema": "=0.2.3",
     "json-sql": "github:LiskHQ/json-sql#27e1ed1",
     "libpq": "^1.8.7",
-    "lodash": "=4.16.2",
+    "lodash": "=4.17.5",
     "method-override": "=2.3.6",
     "pg-monitor": "=0.5.11",
     "pg-native": "=1.10.0",

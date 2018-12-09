@@ -11,7 +11,7 @@ var constants = require('../helpers/constants');
 var networks = require('../networks.json');
 
 // network name that SHOULD already be preconfigured in ../networks.json
-var network_name = "ripa";
+var network_name = "devnet";
 if (!networks[network_name]) {
     console.log("WARNING: no configuration found in networks.json for '" + network_name + "'. Defaulting to 'devnet'");
     network_name = "devnet";
@@ -24,28 +24,28 @@ var private_dir = './private';
 var output_dir = './private';
 
 // default port for node
-var default_port = 5500;
+var default_port = 7500;
 
 // version of network to set in the config file
-var config_version = '0.2.0';
+var config_version = '1.1.0';
 
 // ips of your nodes in your network
 var seed_peers = [
     {
         ip: "127.0.0.1",
-        port: 5500
+        port: 7500
     }, {
         ip: "127.0.0.2",
-        port: 5500
+        port: 7500
     }, {
         ip: "127.0.0.3",
-        port: 5500
+        port: 7500
     }, {
         ip: "127.0.0.4",
-        port: 5500
+        port: 7500
     }, {
         ip: "127.0.0.5",
-        port: 5500
+        port: 7500
     }
 ];
 

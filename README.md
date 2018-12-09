@@ -105,6 +105,16 @@ Watch log
 tail -f logs/ripa.log
 ```
 
+## Launch with forever - DevNET -
+Start
+```
+forever start app.js --config config.devnet.json --genesis genesisBlock.devnet.json
+```
+Watch log
+```
+tail -f logs/ripa.log
+```
+
 ## Launch from command line
 
 To launch ripa on mainnet:

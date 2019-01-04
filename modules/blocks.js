@@ -101,6 +101,7 @@ __private.attachApi = function () {
 		'get /getMilestone': 'getMilestone',
 		'get /getReward': 'getReward',
 		'get /getSupply': 'getSupply',
+		'get /getCirculatingSupply': 'getCirculatingSupply',
 		'get /getStatus': 'getStatus'
 	});
 
@@ -1672,6 +1673,24 @@ shared.getReward = function (req, cb) {
 
 shared.getSupply = function (req, cb) {
 	return cb(null, {supply: __private.blockReward.calcSupply(modules.blockchain.getLastBlock().height)});
+};
+
+shared.getCirculatingSupply = function (req, cb) {
+	var circulatingSupply = __private.blockReward.calcSupply(modules.blockchain.getLastBlock().height);
+	modules.accounts.getAccount({publicKey: '033f68da541bc993c116c758be1da7e4714e75a37fe542c933103a686b9300ffa8'}, 
+		function (err, rows) {
+			if (err) {
+				return cb(null, {supply: circulatingSupply, circulatingSupply: 'Burning Address not found'});
+			}
+			if(rows) {
+				var burnedCoins = constants.totalAmount + parseInt(rows.balance, 10);
+				var nominalSupply = circulatingSupply;
+				circulatingSupply -= burnedCoins;
+				return cb(null, {supply: nominalSupply, circulatingSupply: circulatingSupply});
+			} else {
+				return cb(null, {supply: circulatingSupply, circulatingSupply: 'Burning Address not found'});
+			}
+		});
 };
 
 shared.getStatus = function (req, cb) {
